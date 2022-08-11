@@ -1,0 +1,14 @@
+/.bundle
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+*.swp
+/coverage
+.vscode
+.idea/
+bin
+**/.DS_Store
+vendor
+.docker
+reports/
