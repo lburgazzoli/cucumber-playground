@@ -2,36 +2,34 @@ package playground
 
 import (
 	"flag"
-	"github.com/spf13/pflag"
-	"github.com/stretchr/testify/assert"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
+	"github.com/stretchr/testify/assert"
 )
 
 var opts = godog.Options{
 	Output: colors.Colored(os.Stdout),
-	Format: "pretty",
 }
 
 func init() {
-	godog.BindCommandLineFlags("godog.", &opts)
+	godog.BindFlags("godog.", flag.CommandLine, &opts)
+
+	flag.Func("godog.paths", "", func(val string) error {
+		opts.Paths = strings.SplitAfter(val, ",")
+		return nil
+	})
 }
 
 func TestMain(m *testing.M) {
 	flag.Parse()
-
-	pflag.Parse()
-	opts.Paths = pflag.Args()
-
 	os.Exit(m.Run())
 }
 
 func TestFeatures(t *testing.T) {
-	tsi := func(ctx *godog.TestSuiteContext) {
-	}
 	si := func(ctx *godog.ScenarioContext) {
 		ctx.Step(`^I eat (\d+)$`, func() error { return godog.ErrPending })
 		ctx.Step(`^there are (\d+) godogs$`, func() error { return godog.ErrPending })
@@ -42,10 +40,9 @@ func TestFeatures(t *testing.T) {
 	o.TestingT = t
 
 	status := godog.TestSuite{
-		Name:                 "godogs",
-		Options:              &o,
-		TestSuiteInitializer: tsi,
-		ScenarioInitializer:  si,
+		Name:                "godogs",
+		Options:             &o,
+		ScenarioInitializer: si,
 	}.Run()
 
 	assert.Equal(t, 0, status)
